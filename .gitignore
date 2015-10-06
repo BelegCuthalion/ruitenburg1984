@@ -1,0 +1,2 @@
+# ignore Coq compiled files
+*.vo
