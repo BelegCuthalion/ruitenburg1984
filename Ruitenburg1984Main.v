@@ -160,7 +160,10 @@ Proof.
   trivial.
 Defined.
 
-Lemma bound_Bound
+
+(*
+Lemma bound_Bound_1 : forall b A G, bound b A G -> Bound G A (context_to_set b).
+  
 
 Lemma bound_Bound_Inc : forall b A G n, bound b A G -> n = length b ->
                                     exists B, Included (context_to_set b) B /\ Bound G A B /\ cardinal form B n.
@@ -175,6 +178,7 @@ Proof.
   inversion indeed as [B [h1B [h2B h3B]]].
   apply rui_1_9_Ens with (b := B); trivial.
 Defined.
+*)
 
 (*
 Corollary rui_1_9_bound : forall A,  let m:= length (basic_bound A) in
