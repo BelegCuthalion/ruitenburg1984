@@ -1,0 +1,6 @@
+# ignore Coq output
+*.vo
+
+# ignore HTML files
+*.glob
+*.html
