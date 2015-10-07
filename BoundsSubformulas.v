@@ -421,224 +421,13 @@ Definition exform1 := (q ->> p ->>r) & ((p ->> r) ->> p \v/ r).
 
 
 
-Lemma mb_red_is_Bound :
-  forall G A, Bound G A (context_to_set (mb_red A)).
-Proof.
-    unfold Bound. (* Sept 5: split.
-  {
-  induction A; intros; simpl in *; try (inversion H); try (inversion H0); subst; (*try (inversion_clear H);*)
-               try (ctx_set Hnew;
-                          try (apply IHA1 in Hnew); try (apply IHA2 in Hnew);
-                          inversion_clear Hnew as [C [inC equivC]];
-                          exists C; split; trivial; try solve [u_left]; try solve [u_right]);
-               try solve [inversion H0; (*exists (A1 ->> A2).*) eexists; split; try solve [u_right];
-                          try solve [u_left]; try solve [constructor];
-                          simpl;  apply split_equiv; split; apply deriv_id].
-  
-(*  try (ctx_set Hnew); try apply IHA1 in Hnew; try apply IHA2 in Hnew;
-  try (inversion_clear Hnew as [C [inC [equivC hipC]]]).*)
-  (*try destruct (context_to_set_dist H0) as [H | H]; try apply IHA1 in *)
-  - inversion H2.
-  - inversion_clear H2. exists tt; split; try split.
-           + u_right.
-           + eauto.
-(*             
-           + intros. inversion_clear H; inversion_clear H0. simpl.
-             destruct n.
-             
-             * exists tt. split. u_right.  simpl_spn.
-             * exists (var (S n)). split; try simpl_spn. u_right.  
-             * exists tt. split. u_left. u_right. simpl_spn.
-*)
-- destruct n. 
-  + exists tt. split; try split.
-           * u_right. 
-           * simpl_spn.
-(*             
-           * intros. inversion_clear H; inversion_clear H0; exists tt; split; try simpl_spn.
-             u_left. u_right.
-             u_right. *)
- + exists (var (S n)). split; try split; try solve [simpl_spn]. u_left.
- (*                   
-          intros.  inversion_clear H; inversion_clear H0.
-          exists (var (S n)); split; try simpl_spn;
-          try solve [u_right].
-          exists tt; split; simpl_spn. u_left. u_right.
-  *)
-} Sept 5 *)
-  induction A; simpl; intros; try (inversion H); try (inversion H0); subst;
-  try (destruct (IHA1 _  H2) as [B [inB eqB]]); try (destruct (IHA2 _  H2) as [B [inB eqB]]);
-  try (destruct (IHA1 _  H0) as [B [inB eqB]]); try (destruct (IHA2 _  H0) as [B [inB eqB]]); 
-  try (exists B; split; trivial; try (u_left));
-  try solve  [apply context_to_set_increases1; trivial];  try solve  [apply context_to_set_increases2; trivial].
-  - destruct n.
-    + exists tt. simpl_spn. split; eauto. u_right.
-    + exists (var (S n)). simpl_spn. split; eauto. u_right.
- - exists tt.  split. u_left. u_right. simpl_spn.
- - inversion_clear H0; inversion_clear H; inversion_clear H0;
-   exists (sub (s_p tt) (A1 ->> A2)); split;
-            try u_right;
-            apply split_equiv; split; apply deriv_id.
- - exists tt. split. u_right. simpl_spn.
- - exists tt; split; try u_right; simpl_spn.
- Qed.                 
-(*
-  unfold Bound.  split.
-  {
-    induction A; intros; simpl in *; try (inversion H); try (inversion H0); subst;
-    try (inversion_clear H);
-               try (ctx_set Hnew;
-                          try (apply IHA1 in Hnew); try (apply IHA2 in Hnew);
-                          inversion_clear Hnew as [C [inC equivC]];
-                          exists C; split; trivial; try solve [u_left]; try solve [u_right]);
-               try solve [inversion H0; (*exists (A1 ->> A2).*) eexists; split; try solve [u_right];
-                          try solve [u_left]; try solve [constructor];
-                          simpl;  apply split_equiv; split; apply deriv_id];
-               try (inversion H2; subst);
-               try solve [exists tt; split; try split; try solve [u_right]; try solve [simpl_spn]].
-   -  
-(*  try (ctx_set Hnew); try apply IHA1 in Hnew; try apply IHA2 in Hnew;
-  try (inversion_clear Hnew as [C [inC [equivC hipC]]]).*)
-    (*try destruct (context_to_set_dist H0) as [H | H]; try apply IHA1 in *)
-    (*
-    exists tt; split; try split.
-           + tauto. 
-           + eauto.*)
-(*             
-           + intros. inversion_clear H; inversion_clear H0. simpl.
-             destruct n.
-             
-             * exists tt. split. u_right.  simpl_spn.
-             * exists (var (S n)). split; try simpl_spn. u_right.  
-             * exists tt. split. u_left. u_right. simpl_spn.
-*)
-    - destruct n; exists tt; split; try split; try solve [u_right]; try solve [simpl_spn].
-    -   
-(*             
-           * intros. inversion_clear H; inversion_clear H0; exists tt; split; try simpl_spn.
-             u_left. u_right.
-             u_right. *)
-   + exists (var (S n)). split; try split; try solve [simpl_spn].
-                    
- (*                   
-          intros.  inversion_clear H; inversion_clear H0.
-          exists (var (S n)); split; try simpl_spn;
-          try solve [u_right].
-          exists tt; split; simpl_spn. u_left. u_right.
-  *)
-}
-  induction A; simpl; intros; try (inversion H); try (inversion H0); subst;
-  try (destruct (IHA1 _  H2) as [B [inB eqB]]); try (destruct (IHA2 _  H2) as [B [inB eqB]]);
-  try (destruct (IHA1 _  H0) as [B [inB eqB]]); try (destruct (IHA2 _  H0) as [B [inB eqB]]); 
-  try (exists B; split; trivial; try (u_left));
-  try solve  [apply context_to_set_increases1; trivial];  try solve  [apply context_to_set_increases2; trivial].
-  - destruct n.
-    + exists tt. simpl_spn. split; eauto. u_right.
-    + exists (var (S n)). simpl_spn. split; eauto. u_right.
- - exists tt.  split. u_left. u_right. simpl_spn.
- - inversion_clear H0; inversion_clear H; inversion_clear H0;
-   exists (sub (s_p tt) (A1 ->> A2)); split;
-            try u_right;
-            apply split_equiv; split; apply deriv_id.
- - exists tt. split. u_right. simpl_spn.
- - exists tt; split; try u_right; simpl_spn.
- Qed.                  
-*)
 
-
-Lemma mb_red_is_ExactBound :
-  forall G A, ExactBound G A (context_to_set (mb_red A)).
-Proof.
-  intros. split; try apply mb_red_is_Bound.
-  induction A; intros; simpl in *; try (inversion H); try (inversion H0); subst; (*try (inversion_clear H);*)
-               try (ctx_set Hnew;
-                          try (apply IHA1 in Hnew); try (apply IHA2 in Hnew);
-                          inversion_clear Hnew as [C [inC equivC]];
-                          exists C; split; trivial; try solve [u_left]; try solve [u_right]);
-               try solve [inversion H0; (*exists (A1 ->> A2).*) eexists; split; try solve [u_right];
-                          try solve [u_left]; try solve [constructor];
-                          simpl;  apply split_equiv; split; apply deriv_id].
-  
-(*  try (ctx_set Hnew); try apply IHA1 in Hnew; try apply IHA2 in Hnew;
-  try (inversion_clear Hnew as [C [inC [equivC hipC]]]).*)
-  (*try destruct (context_to_set_dist H0) as [H | H]; try apply IHA1 in *)
-  - inversion H2.
-  - inversion_clear H2. exists tt; split; try split.
-           + u_right.
-           + eauto.
-(*             
-           + intros. inversion_clear H; inversion_clear H0. simpl.
-             destruct n.
-             
-             * exists tt. split. u_right.  simpl_spn.
-             * exists (var (S n)). split; try simpl_spn. u_right.  
-             * exists tt. split. u_left. u_right. simpl_spn.
-*)
-  - destruct n. 
-    + exists tt. split; try split.
-           * u_right. 
-           * simpl_spn.
-(*             
-           * intros. inversion_clear H; inversion_clear H0; exists tt; split; try simpl_spn.
-             u_left. u_right.
-             u_right. *)
-    + exists (var (S n)). split; try split; try solve [simpl_spn]. u_left.
- (*                   
-          intros.  inversion_clear H; inversion_clear H0.
-          exists (var (S n)); split; try simpl_spn;
-          try solve [u_right].
-          exists tt; split; simpl_spn. u_left. u_right. *)
-Qed.  
-
-
-
-
-
-
-Lemma  max_bound_is_Bound :
-  forall G A, Bound G A (context_to_set (max_bound A)).
-  unfold max_bound. intros. apply dup_rem_Bound. apply mb_red_is_Bound.
-Qed.
-
-
-
-
-
-
-(* 
-
-Require Import List Ensembles.
-
-Fixpoint list_to_set {A:Type} (l : list A) {struct l}: Ensemble A :=
-  match l with
-    | nil => Empty_set A
-    | hd :: tl => Add A (list_to_set tl) hd
-  end.
-
-
- forall A, Included (context_to_set (mb_red A)) (MaxBound A).
-  unfold MaxBound, Included, In. 
-  induction A;  simpl; intros B hip;
-  unfold App; simpl;
-  try (rewrite Im_add); try (inversion hip); subst;
-  try (inversion H; subst; try (inversion H0; subst)).
-  - u_right.
-  - u_left. 
-    rewrite subs_fresh_form.
-    
-Definition Bound (G: context) (A : form) (b : Ensemble form) :=
-  forall B: form, In b B <-> exists C, In (MaxBound A) C /\ G |-- C <<->> B.
-*)
 
 
 
 (*
 
 Definition SetForm := Coq.MSets.MSetList.Make form ...
-*)
-(*
-Definition bound (b: Ensemble form) (p : Finite form b) (A : form) (G : context) :=
-  Forall (fun C => Exists (fun B => G |-- sub (s_p tt) B <<->> sub (s_p tt) C) b) (mb_red A).
 *)
 
 
@@ -915,6 +704,63 @@ Lemma mb_red_is_bound : forall A, bound (mb_red A) A [].
   - eapply mb_red_subst. eassumption.
 Qed.
 
+
+
+
+(** ... the lemma below can be now more easily obtained as a corollary ... *)
+
+Lemma mb_red_is_Bound :
+  forall G A, Bound G A (context_to_set (mb_red A)).
+Proof.
+  intros.
+  apply bound_is_Bound.
+  eapply  bound_for_bound_upward.
+  apply mb_red_is_bound.
+  unfold incl. intros. inversion H.
+ Qed.                 
+
+
+Lemma mb_red_is_ExactBound :
+  forall G A, ExactBound G A (context_to_set (mb_red A)).
+Proof.
+  intros. split; try apply mb_red_is_Bound.
+  induction A; intros; simpl in *; try (inversion H); try (inversion H0); subst; (*try (inversion_clear H);*)
+               try (ctx_set Hnew;
+                          try (apply IHA1 in Hnew); try (apply IHA2 in Hnew);
+                          inversion_clear Hnew as [C [inC equivC]];
+                          exists C; split; trivial; try solve [u_left]; try solve [u_right]);
+               try solve [inversion H0; (*exists (A1 ->> A2).*) eexists; split; try solve [u_right];
+                          try solve [u_left]; try solve [constructor];
+                          simpl;  apply split_equiv; split; apply deriv_id].  
+  - inversion H2.
+  - inversion_clear H2. exists tt; split; try split.
+           + u_right.
+           + eauto.
+  - destruct n. 
+    + exists tt. split; try split.
+           * u_right. 
+           * simpl_spn.
+    + exists (var (S n)). split; try split; try solve [simpl_spn]. u_left.
+Qed.  
+
+
+
+
+
+
+Lemma  max_bound_is_Bound :
+  forall G A, Bound G A (context_to_set (max_bound A)).
+  unfold max_bound. intros. apply dup_rem_Bound. apply mb_red_is_Bound.
+Qed.
+
+
+
+
+
+
+
+
+(**  ** Finiteness and cardinality *)
 
 
 Lemma Finite_context_to_set : forall b, Finite form (context_to_set b).
