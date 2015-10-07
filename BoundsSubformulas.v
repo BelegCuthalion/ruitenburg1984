@@ -796,7 +796,7 @@ Lemma bound_Bound_Inc : forall b A G n, bound b A G -> n = length b ->
   pose proof (cardinal_context_to_set _ _ Hn').
 *)  
 
-(*
+
 Definition basic_bound (A: form) := dup_rem (map t_optimize (mb_red A)).
 
 
@@ -804,11 +804,17 @@ Definition basic_bound (A: form) := dup_rem (map t_optimize (mb_red A)).
 
 Lemma basic_bound_is_bound : forall G A, bound (basic_bound A) A G.
   unfold basic_bound. intros.
-  eapply upward_bound_for_bound. apply map_bound_for_bound.
-  intros. apply t_optimize_correct. apply mb_red_bound.
-  apply dup_rem_incl.
+  eapply upward_bound_for_bound; try apply dup_rem_incl.
+  apply map_bound_for_bound; intros.
+  apply t_optimize_correct_1.
+  apply t_optimize_correct_2. assumption.
+  eapply bound_for_bound_upward.
+  apply mb_red_is_bound.
+  unfold incl. intros B H. inversion H.
 Defined.
 
+
+(*
 (*Compute basic_bound exform1.*)
 (* => [var 1 ->> var 2; var 1; var 2 ->> tt; var 2; tt] *)
 (* whoa, this is funny... what [var 2 ->> tt] is doing here?? Compare with *)

@@ -177,10 +177,10 @@ Defined.
 
 
 (*
-Corollary rui_1_9_bound : forall A,  let m:= length (basic_bound A) in
+Corollary rui_1_9_basic_bound : forall A,  let m:= length (basic_bound A) in
                                      [] |-- f_p A (2 * m + 2) <<->>  f_p A (2 * m + 4).
 Proof.
-  intros. apply rui_1_9. apply basic_bound_is_bound.
+  intros. apply rui_1_9_list. apply basic_bound_is_bound.
 Defined.  
 *)
 
