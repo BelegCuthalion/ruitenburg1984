@@ -440,7 +440,7 @@ Definition SetForm := Coq.MSets.MSetList.Make form ...
 
 
 Definition bound (b: list form) (A : form) (G : context) :=
-  Forall (fun C => Exists (fun B => G |--  B <<->>  C /\ B = sub (s_p tt) B) b) (mb_red A).
+  Forall (fun C => Exists (fun B => G |--  B <<->>  C /\ [] |-- B <<->> sub (s_p tt) B) b) (mb_red A).
   
 
 (*
@@ -499,7 +499,7 @@ Proof.
   specialize (H B H1).
   rewrite Exists_exists in *.
   destruct H as [C [hIn [heqv heql]]].
-  exists C. split; try split; trivial.
+  exists C. split; try split; trivial;
   eapply hil_weaken_incl; eassumption.
 Defined.
   
@@ -531,7 +531,7 @@ Fixpoint t_optimize (A : form) : form :=
   end.
 
 
-Lemma t_optimize_correct : forall A G, G |-- A <<->> t_optimize A.
+Lemma t_optimize_correct_1 : forall A G, G |-- A <<->> t_optimize A.
   induction A; intros.
   - simpl; eauto.
   - destruct (dceq_f tt A1); destruct (dceq_f tt A2); subst.
@@ -583,25 +583,30 @@ Lemma t_optimize_correct : forall A G, G |-- A <<->> t_optimize A.
 Qed.
 
 
-(*
-Lemma map_bound_for_bound : forall G A b (f : form -> form), (forall B, [] |-- B <<->> f B) -> bound b A G -> bound (map f b) A G.
-  unfold bound. intros. rewrite Forall_forall in *.  intros.
-  apply H0 in H1.  rewrite Exists_exists in *.
-  inversion H1 as [D [inb Gded]]. exists (f D). split.
-  - apply in_map. trivial.
-  - inversion Gded. split.
-    + apply eq_trans with (B := sub (s_p tt) D); try trivial.
-      * apply eq_sym. apply hil_permute with (G := G ++ []).
-        apply hil_weaken_gen.
-        specialize (H D).
-        rewrite <- H3.
-        trivial. 
-        intros. rewrite in_app_iff. intuition.
-        inversion H7.
-      * rewrite <- H3.  trivial.
-    + rewrite H3.
+
+Lemma t_optimize_correct_2 : forall B, [] |-- B <<->> sub (s_p tt) B -> [] |-- (t_optimize B) <<->> (sub (s_p tt) (t_optimize B)).
+  intros.
+  pose proof (t_optimize_correct_1 B []) as eq1.
+  pose proof (eq_trans _ _ _ _ (eq_sym _ _ _ eq1) H) as eq2.
+  apply (hil_sub_equiv (s_p tt)) in eq1; simpl in eq1.
+  eapply eq_trans. apply eq2. apply eq1.
 Qed.
-*)
+  
+    
+Lemma map_bound_for_bound : forall G A b (f : form -> form), (forall B, [] |-- (B <<->> f B)) -> (forall B, [] |-- B <<->> sub (s_p tt) B -> [] |-- (f B) <<->> (sub (s_p tt) (f B))) -> bound b A G -> bound (map f b) A G.
+  unfold bound. intros. rewrite Forall_forall in *.  intros.
+  apply H1 in H2.  rewrite Exists_exists in *.
+  inversion H2 as [D [inb Gded]].
+  exists (f D). split.
+  - apply in_map. trivial.
+  - destruct Gded as [Gdr Gdl]. split.
+    + apply eq_trans with (B := D); try trivial.
+      apply eq_sym. eapply hil_weaken_incl. apply H.
+      unfold incl. intros. inversion H3.
+    + apply H0. (*eapply hil_weaken_incl. apply Gdl.
+      unfold incl. intros.*) assumption.
+Qed.
+
 
 Lemma List_In_context_to_set : forall b A, List.In A b -> In (context_to_set b) A.
   induction b; intros.
@@ -648,23 +653,7 @@ Lemma mb_red_subst: forall A B, List.In B (mb_red A) -> B = sub (s_p tt) B.
     + auto.
 Qed.
 
-(*
-Lemma Bound_is_bound: forall G A b, Bound G A (context_to_set b) -> bound b A G.
-  unfold Bound, bound.
-  intros. rewrite Forall_forall.
-  intros B hB.
-  pose proof (List_In_context_to_set _ _ hB) as hB'.
-  rewrite Exists_exists.
-  pose proof (mb_red_is_ExactBound G A) as [hEx1 hEx2].
-  destruct (hEx1 B hB') as [C [inC eqC]]. clear hEx1.
-  destruct (H C inC) as [B' [inB' eqB']]. clear H.
-  (*rewrite (mb_red_subst A B) in eqC.*)
-  exists B'. split.
-  - apply context_to_set_List_In. trivial.
-  -  (** hm .. we want  G |-- B' {tt }/p <<->> B {tt }/p, but we only get G |-- B' <--> B! *)
-     (** Things provable in a context are not closed under sbst. Consider
-         ~p |-- (p ->  \bot) <-> \top ... *)
-*)
+
 
 
 Lemma Bound_mb_red : forall A B, In (BoundSubformulas A) B -> List.In (sub (s_p tt) B) (mb_red A).
@@ -701,8 +690,10 @@ Lemma mb_red_is_bound : forall A, bound (mb_red A) A [].
   rewrite Exists_exists.
   exists B. intuition.
   - eauto.
-  - eapply mb_red_subst. eassumption.
+  - rewrite <- mb_red_subst with (A := A) (B:=B); eauto.
 Qed.
+
+
 
 
 
@@ -756,7 +747,24 @@ Qed.
 
 
 
-
+(*
+Lemma Bound_is_bound: forall G A b, ExactBound G A (context_to_set b) -> bound b A G.
+  unfold ExactBound, Bound, bound.
+  intros. rewrite Forall_forall.
+  intros B hB.
+  pose proof (List_In_context_to_set _ _ hB) as hB'.
+  rewrite Exists_exists.
+  pose proof (mb_red_is_ExactBound G A) as [hEx1 hEx2].
+  destruct (hEx1 B hB') as [C [inC eqC]]. clear hEx1.
+  destruct H as [Hl Hr].
+  destruct (Hr C inC) as [B' [inB' eqB']]. clear Hr.
+  destruct (Hl _ inB') as [C' [inC' eqC']].
+  (*rewrite (mb_red_subst A B) in eqC.*)
+  exists B'. split; try split.
+  - apply context_to_set_List_In. trivial.
+  - eapply eq_trans. apply eq_sym. apply eqB'. apply eqC.
+  - ??? *)
+    
 
 
 
