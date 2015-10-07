@@ -38,6 +38,10 @@ Arguments Singleton [U] _ _.
 Arguments Add [U] _ _ _.
 Arguments Union [U] _ _ _.
 Arguments Included [U] _ _ .
+Arguments cardinal [U] _ _ .
+Arguments In [U] _ _ .
+Arguments Subtract [U] _ _ _.
+
 
 Definition App (A : form)  U := Add U A.
 
@@ -125,11 +129,11 @@ in this sense, the present definition is narrower.
 *)
 
 Definition Bound (G: context) (A : form) (b : Ensemble form) :=
-(*  (forall B: form, In form b B -> exists C, In form (BoundSubformulas A) C /\ G |-- sub (s_p tt) C <<->> B) /\ *)
-  forall C: form, In form (BoundSubformulas A) C -> exists B, In form b B /\ G |-- sub (s_p tt) C <<->> B.
+(*  (forall B: form, In b B -> exists C, In (BoundSubformulas A) C /\ G |-- sub (s_p tt) C <<->> B) /\ *)
+  forall C: form, In (BoundSubformulas A) C -> exists B, In b B /\ G |-- sub (s_p tt) C <<->> B.
 
 Definition ExactBound (G: context) (A : form) (b : Ensemble form) :=
-  (forall B: form, In form b B -> exists C, In form (BoundSubformulas A) C /\ G |-- sub (s_p tt) C <<->> B) /\ 
+  (forall B: form, In b B -> exists C, In (BoundSubformulas A) C /\ G |-- sub (s_p tt) C <<->> B) /\ 
   Bound G A b.
 
 
@@ -139,7 +143,7 @@ Fixpoint context_to_set (G : context) : Ensemble form :=
     | hd :: tl => Add (context_to_set tl) hd
   end.
 
-Lemma context_to_set_increases1 : forall G1 G2 B, In form (context_to_set G1) B -> In form (context_to_set (G1 ++ G2)) B.
+Lemma context_to_set_increases1 : forall G1 G2 B, In (context_to_set G1) B -> In (context_to_set (G1 ++ G2)) B.
   induction G1; intros.
   - inversion H.
   - inversion H; subst.
@@ -149,15 +153,15 @@ Qed.
 
 
 
-Lemma context_to_set_increases2 : forall G1 G2 B, In form (context_to_set G2) B -> In form (context_to_set (G1 ++ G2)) B.
+Lemma context_to_set_increases2 : forall G1 G2 B, In (context_to_set G2) B -> In (context_to_set (G1 ++ G2)) B.
   induction G1; intros.
   - rewrite app_nil_l. trivial.
   - apply IHG1 in H. rewrite <- app_comm_cons. simpl. u_left.
 Qed.
 
 
-Lemma context_to_set_dist: forall G1 G2 B, In form (context_to_set (G1 ++ G2)) B <->
-                                           In form (context_to_set G1) B \/ In form (context_to_set G2) B.
+Lemma context_to_set_dist: forall G1 G2 B, In (context_to_set (G1 ++ G2)) B <->
+                                           In (context_to_set G1) B \/ In (context_to_set G2) B.
   induction G1; simpl; intros; split; try tauto.
   - intro. inversion H as [H' | H']. inversion H'. trivial.
   - intro. inversion H; subst.
@@ -176,7 +180,7 @@ Ltac simpl_spn := unfold s_p; unfold s_n;  simpl; eauto.
 
 Ltac ctx_set H1 :=
   match goal with
-      [H: In form (context_to_set (?G1 ++ ?G2)) ?B |- _ ] => apply context_to_set_dist in H; inversion H as [H1 | H1]
+      [H: In (context_to_set (?G1 ++ ?G2)) ?B |- _ ] => apply context_to_set_dist in H; inversion H as [H1 | H1]
    end.                                                                                                         
 
 
@@ -222,7 +226,7 @@ Qed.
 
 
 
-Lemma Singleton_eq : forall (U : Type) (x y : U), In U (Singleton x) y <-> x = y.
+Lemma Singleton_eq : forall (U : Type) (x y : U), In (Singleton x) y <-> x = y.
   intros. split. apply Singleton_inv. apply Singleton_intro.
 Defined.
 
@@ -254,13 +258,13 @@ Qed.
 
 (** Interestingly, the following useful facts about Union do not seem provided by Ensembles ... *)
 
-Lemma Incl_Union_l : forall (A B C: Ensemble form), Included (Union A B) C -> Included A C.
+Lemma Incl_Union_l : forall U (A B C: Ensemble U), Included (Union A B) C -> Included A C.
   unfold Included. intros.
   apply Union_introl with (C:=B) in H0.
   apply H in H0. trivial.
 Qed.
   
-Lemma Incl_Union_r : forall  (A B C: Ensemble form),  Included (Union A B) C -> Included B C.
+Lemma Incl_Union_r : forall U  (A B C: Ensemble U),  Included (Union A B) C -> Included B C.
   unfold Included. intros.
   apply Union_intror with (B:=A) in H0.
   apply H in H0. trivial.
@@ -268,10 +272,13 @@ Qed.
 
 
   
-Lemma Included_refl: forall (A:Ensemble form), Included A A.
+Lemma Included_refl: forall U (A:Ensemble U), Included A A.
   unfold Included. intros. trivial.
 Qed.
 
+Arguments Incl_Union_l [U] _ _ _ _ _ _.
+Arguments Incl_Union_r [U] _ _ _ _ _ _.
+Arguments Included_refl [U] _ _ _.
 
 (* ##################################################### *)
 
@@ -356,7 +363,7 @@ Defined.
 
 
 
-(*
+
 (** ** Bounds as lists **)
 
 
@@ -620,7 +627,7 @@ Fixpoint list_to_set {A:Type} (l : list A) {struct l}: Ensemble A :=
     rewrite subs_fresh_form.
     
 Definition Bound (G: context) (A : form) (b : Ensemble form) :=
-  forall B: form, In form b B <-> exists C, In form (MaxBound A) C /\ G |-- C <<->> B.
+  forall B: form, In b B <-> exists C, In (MaxBound A) C /\ G |-- C <<->> B.
 *)
 
 
@@ -644,14 +651,15 @@ Definition bound (b: Ensemble form) (p : Finite form b) (A : form) (G : context)
 
 
 Definition bound (b: list form) (A : form) (G : context) :=
-   Forall (fun C => Exists (fun B => G |-- sub (s_p tt) B <<->> sub (s_p tt) C) b) (mb_red A).
+  Forall (fun C => Exists (fun B => G |--  B <<->>  C /\ B = sub (s_p tt) B) b) (mb_red A).
+  
 
 (*
 Lemma bound_Bound : forall (b: list form) (A : form) (G : context), Bound G A (context_to_set b) ->
                                                                     bound b A G.
   unfold Bound, bound.
-  assert (tt_in: forall n, In form (App tt (Singleton (var n))) tt) by (intros; u_right).
-  assert (varn_in: forall n, In form (App tt (Singleton (var n))) (var n)) by (intros; u_left).
+  assert (tt_in: forall n, In (App tt (Singleton (var n))) tt) by (intros; u_right).
+  assert (varn_in: forall n, In (App tt (Singleton (var n))) (var n)) by (intros; u_left).
   induction A; simpl; intros; inversion H as [inL inR].
   -  constructor.
      + specialize (tt_in n). specialize (varn_in n).
@@ -666,17 +674,17 @@ Lemma bound_Bound : forall (b: list form) (A : form) (G : context), Bound G A (c
 
 (** Ruitenburg : observe that ... [a bound] ... always exists *) 
 
-(**
+(*
 Lemma  max_bound_is_bound : forall G A, bound (max_bound A) A G.
 Proof with eauto using dup_rem_incl, incl_dup_rem.
   unfold bound, max_bound. intro G. 
-  induction A;  split; eauto; 
+  induction A; try split; eauto; 
   try rewrite Forall_forall in *; 
   intros; try apply no_dup_rem.
   rewrite Exists_exists;
   try solve [ destruct (in_app_or _ _ _ H) as [inA | inA]; eauto].
   - inversion H as [H0 | [H1 | H2]].
-    + subst. exists (s_p tt n); split...
+    + subst. exists (sub (s_p tt) (var n)); split... apply dup_rem_incl in H. trivial. split. eauto. simpl. ???
     + subst. exists tt. simpl. eauto.
     + inversion H2.
   - inversion H.
@@ -693,20 +701,17 @@ Defined.
 
 (** But there is also another obvious sense in which "bounds" are monotone. *)
 
+
 Lemma bound_for_bound_upward : forall b A G G', bound b A G -> incl G G' -> bound b A G'.
-Proof with eauto using Forall_forall.
+Proof.
   unfold bound.  
-  intros. apply Forall_forall. intros.
+  intros. rewrite Forall_forall in *. intros.
   rename x into B.
-  apply Exists_exists.
-  (*rewrite Forall_forall in H. <-- it didn't work before I changed context from  "Definition" to "Notation".*)
-  pose proof (Forall_forall  (fun C : form =>
-                                Exists (fun B : form => G |-- sub (s_p tt) B  <<->> sub (s_p tt) C ) b) (mb_red A)) as [F1 F2].
-  pose proof (F1 H B H1).
-  apply Exists_exists in H2.
-  destruct H2 as [C [HIn Hded]].
-  exists C; split; trivial.
-  eauto using hil_weaken_incl.
+  specialize (H B H1).
+  rewrite Exists_exists in *.
+  destruct H as [C [hIn [heqv heql]]].
+  exists C. split; try split; trivial.
+  eapply hil_weaken_incl; eassumption.
 Defined.
   
   
@@ -789,26 +794,27 @@ Lemma t_optimize_correct : forall A G, G |-- A <<->> t_optimize A.
 Qed.
 
 
-
+(*
 Lemma map_bound_for_bound : forall G A b (f : form -> form), (forall B, [] |-- B <<->> f B) -> bound b A G -> bound (map f b) A G.
   unfold bound. intros. rewrite Forall_forall in *.  intros.
   apply H0 in H1.  rewrite Exists_exists in *.
   inversion H1 as [D [inb Gded]]. exists (f D). split.
   - apply in_map. trivial.
-  - apply eq_trans with (B := sub (s_p tt) D); try trivial.
-    rewrite <- (app_nil_r G). apply hil_weaken_gen.
-    (** Now logically one would do
-      [replace (sub (s_p tt) (f D) <<->> sub (s_p tt) D) with (sub (s_p tt) (f D <<->> D)). replace []  with (ssub (s_p tt) [])]
-      but some absurd error in Coq code produces "Error: Terms do not have convertible types". So instead I do roundabout... *)
-    assert ((ssub (s_p tt) []) |-- sub (s_p tt) (f D <<->> D)).
-    {
-          eapply (hil_sub (s_p tt)). apply eq_sym. trivial.
-    }
-    simpl in H2. trivial.
+  - inversion Gded. split.
+    + apply eq_trans with (B := sub (s_p tt) D); try trivial.
+      * apply eq_sym. apply hil_permute with (G := G ++ []).
+        apply hil_weaken_gen.
+        specialize (H D).
+        rewrite <- H3.
+        trivial. 
+        intros. rewrite in_app_iff. intuition.
+        inversion H7.
+      * rewrite <- H3.  trivial.
+    + rewrite H3.
 Qed.
+*)
 
-
-Lemma List_In_context_to_set : forall b A, List.In A b -> In form (context_to_set b) A.
+Lemma List_In_context_to_set : forall b A, List.In A b -> In (context_to_set b) A.
   induction b; intros.
   - inversion H.
   - apply in_inv in H. inversion H.
@@ -817,7 +823,7 @@ Lemma List_In_context_to_set : forall b A, List.In A b -> In form (context_to_se
 Qed.
 
 
-Lemma context_to_set_List_In : forall b A, In form (context_to_set b) A ->  List.In A b.
+Lemma context_to_set_List_In : forall b A, In (context_to_set b) A ->  List.In A b.
   induction b; simpl; intros.
   - inversion H.
   - apply Union_inv in H. inversion H.
@@ -825,6 +831,35 @@ Lemma context_to_set_List_In : forall b A, In form (context_to_set b) A ->  List
     + inversion H0. subst. left. reflexivity.
 Qed.
 
+
+Lemma mb_red_subst: forall A B, List.In B (mb_red A) -> B = sub (s_p tt) B.
+  intros. induction A; simpl in H;
+          try (rewrite in_app_iff in H);
+          try (inversion H; subst; auto; inversion H0).
+  - inversion_clear H as [H' | [H' | H']]; subst; try reflexivity.
+    + unfold s_p. unfold s_n. destruct n; simpl; reflexivity.
+    + inversion H'.
+  - inversion_clear H as [H' | [H' | H']]; subst; simpl.
+    + rewrite subs_fresh_form with (A := sub (s_p tt) A1).
+      *
+      {
+        rewrite subs_fresh_form with (A := sub (s_p tt) A2).
+        - reflexivity.
+        - intros. destruct n.
+          + contradict H. apply freshness_s_p. constructor.
+          + reflexivity.
+      }
+      *
+      {
+        intros. destruct n.
+        - contradict H. apply freshness_s_p. constructor.
+        - reflexivity.
+      }
+    + auto.
+    + auto.
+Qed.
+
+(*
 Lemma Bound_is_bound: forall G A b, Bound G A (context_to_set b) -> bound b A G.
   unfold Bound, bound.
   intros. rewrite Forall_forall.
@@ -834,14 +869,80 @@ Lemma Bound_is_bound: forall G A b, Bound G A (context_to_set b) -> bound b A G.
   pose proof (mb_red_is_ExactBound G A) as [hEx1 hEx2].
   destruct (hEx1 B hB') as [C [inC eqC]]. clear hEx1.
   destruct (H C inC) as [B' [inB' eqB']]. clear H.
+  (*rewrite (mb_red_subst A B) in eqC.*)
   exists B'. split.
   - apply context_to_set_List_In. trivial.
   -  (** hm .. we want  G |-- B' {tt }/p <<->> B {tt }/p, but we only get G |-- B' <--> B! *)
      (** Things provable in a context are not closed under sbst. Consider
          ~p |-- (p ->  \bot) <-> \top ... *)
+*)
 
 
-  
+Lemma Bound_mb_red : forall A B, In (BoundSubformulas A) B -> List.In (sub (s_p tt) B) (mb_red A).
+  induction A; simpl; intros; try (apply Union_inv in H); try solve [intuition].
+  - inversion_clear H; inversion_clear H0; unfold s_p.
+    + destruct n; simpl; intuition.
+    + simpl. intuition.
+  - inversion_clear H.
+    + apply Union_inv in H0. rewrite in_app_iff. intuition.
+    + inversion_clear H0. intuition.
+  - inversion_clear H. simpl. intuition.
+  - inversion_clear H. simpl. intuition.
+ Qed.
+ 
+
+Lemma bound_is_Bound : forall b A G, bound b A G -> Bound G A (context_to_set b).
+  unfold bound, Bound. intros.
+  apply Bound_mb_red in H0.
+  rewrite Forall_forall in H.
+  specialize (H _ H0).
+  rewrite Exists_exists in H.
+  destruct H as [B [lIn [eqv eql]]].
+  exists B. split.
+  - apply List_In_context_to_set. assumption.
+  - apply eq_sym. assumption.
+Qed.
+
+
+Lemma mb_red_is_bound : forall A, bound (mb_red A) A [].
+  unfold bound. intro.
+  rewrite Forall_forall.
+  intros.
+  rename x into B.
+  rewrite Exists_exists.
+  exists B. intuition.
+  - eauto.
+  - eapply mb_red_subst. eassumption.
+Qed.
+
+
+
+Lemma Finite_context_to_set : forall b, Finite form (context_to_set b).
+  induction b; simpl.
+  - constructor.
+  - apply Add_preserves_Finite. assumption.
+Qed.
+
+Lemma cardinal_context_to_set : forall b n, cardinal (context_to_set b) n -> n <= length b.
+  induction b; simpl; intros.
+  - inversion H. omega. contradict H0. apply Add_not_Empty.
+  - destruct (finite_cardinal _ _  (Finite_context_to_set b)) as [n' Hn'].
+    specialize (IHb n' Hn').
+    pose proof (card_Add_gen _ _ _ _ _ Hn' H).
+    omega.
+Qed.
+
+
+(*
+Lemma bound_Bound_Inc : forall b A G n, bound b A G -> n = length b ->
+                                    exists B, Included (context_to_set b) B /\ Bound G A B /\ cardinal B n.
+  intros. 
+  pose proof (bound_is_Bound _ _ _ H) as HbB.
+  destruct (finite_cardinal _ _  (Finite_context_to_set b)) as [n' Hn'].
+  pose proof (cardinal_context_to_set _ _ Hn').
+*)  
+
+(*
 Definition basic_bound (A: form) := dup_rem (map t_optimize (mb_red A)).
 
 

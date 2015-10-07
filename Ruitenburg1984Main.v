@@ -20,13 +20,13 @@ The Coq Proof Assistant, version 8.4pl6 (September 2015)
 Require Export Ruitenburg1984KeyTheorem.
 Require Export Ruitenburg1984Aux.
 
-
+(** The latter file is not used in Corollary 1.5, only in Corollary 1.9 *)
 
 
 (** ** Corollary 1.5 *)
   
 
-Corollary rui_1_4': forall A b n, (Bound  [] A b) -> cardinal form b n ->
+Corollary rui_1_4': forall A b n, (Bound  [] A b) -> cardinal b n ->
                               forall i v,
                                 let v' := S v in
                                 fresh_f_p v' A ->
@@ -63,7 +63,7 @@ Proof.
 Defined.  
   
 
-Corollary rui_1_5: forall A b i n, (Bound [] A b) -> cardinal form b n -> let m:= (2 * n + 1) in [sub (s_p tt) A; f_p A i] |-- f_p A m.
+Corollary rui_1_5: forall A b i n, (Bound [] A b) -> cardinal b n -> let m:= (2 * n + 1) in [sub (s_p tt) A; f_p A i] |-- f_p A m.
 Proof.
   intros.
   pose (v := (not_used A)).
@@ -146,7 +146,7 @@ Defined.
 
 Theorem rui_1_9_Ens:
   forall A b m, (Bound [] A b) ->
-                cardinal form b m ->
+                cardinal b m ->
                 [] |-- f_p A (2 * m + 2) <<->>  f_p A (2 * m + 4).
 Proof.
   intros.
@@ -160,25 +160,21 @@ Proof.
   trivial.
 Defined.
 
-
-(*
-Lemma bound_Bound_1 : forall b A G, bound b A G -> Bound G A (context_to_set b).
   
 
-Lemma bound_Bound_Inc : forall b A G n, bound b A G -> n = length b ->
-                                    exists B, Included (context_to_set b) B /\ Bound G A B /\ cardinal form B n.
-  intros.
 
-
-Theorem rui_1_9_list: forall A b, (bound b A []) -> let m:= length b in
+Theorem rui_1_9_list: forall A b, (bound b A []) -> exists m, m <= length b /\
                                                [] |-- f_p A (2 * m + 2) <<->>  f_p A (2 * m + 4).
 Proof.
-  intros. subst m.
-  pose proof (bound_Bound_Inc b A [] (length b) H refl_equal) as indeed.
-  inversion indeed as [B [h1B [h2B h3B]]].
-  apply rui_1_9_Ens with (b := B); trivial.
+  intros.
+  destruct (finite_cardinal _ _  (Finite_context_to_set b)) as [n' Hn'].
+  pose proof (bound_is_Bound b A []  H) as indeed.
+  exists n'. split.
+  - apply cardinal_context_to_set. assumption.
+  (*inversion indeed as [B [h1B [h2B h3B]]].*)
+  - apply rui_1_9_Ens with (b := (context_to_set b)); trivial.
 Defined.
-*)
+
 
 (*
 Corollary rui_1_9_bound : forall A,  let m:= length (basic_bound A) in

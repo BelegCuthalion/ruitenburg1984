@@ -273,7 +273,7 @@ Theorem rui_1_4: forall n G A B,
                       let G' :=  (f_p A i) :: sub (s_p tt) A :: G in
                       (exists b,  
                         let b' := (App tt b) in
-                        Bound G' A b' /\ cardinal form b n) ->
+                        Bound G' A b' /\ cardinal b n) ->
                         fresh_l_p v (p::B::A::G) ->
                         ((f_p A (2*n)) ->> (var v))::G' |-- (sub (s_p (var v)) B <<->> sub (s_p tt) B) & (sub (s_p tt) B ->> (var v)) \/
                         ((f_p A (2*n)) ->> (var v))::G' |-- sub (s_p (var v)) B <<->>  (var v) \/
@@ -368,7 +368,7 @@ Proof.
         - SSSCase "Gamma_s |-/- a".
           inversion_clear Hbound as [b [HbAbound Hbcard]].
           pose proof (IncludedBound _ _ _ _ Hinc HbAbound) as HvarBound.
-          assert (HC: exists C, (In form b C) /\ f_p A i :: sub (s_p tt) A  :: G |-- var (S n0) <<->> C).
+          assert (HC: exists C, (In b C) /\ f_p A i :: sub (s_p tt) A  :: G |-- var (S n0) <<->> C).
           {
             unfold Bound in HvarBound. 
             pose proof (BoundVar (var (S n0)) (S n0) (In_singleton form (var (S n0)))) as Hvar.
@@ -384,9 +384,9 @@ Proof.
           inversion_clear HC as [C [HCin HCequiv]].
           assert (IHnInstance : let G' := f_p A i :: sub (s_p tt) A :: var (S n0) :: G in
         (exists b0 : Ensemble form,
-           let b' := App tt b0 in Bound G' A b' /\ cardinal form b0 n)).
+           let b' := App tt b0 in Bound G' A b' /\ cardinal b0 n)).
           {
-            exists (Subtract form b C). split.
+            exists (Subtract b C). split.
             - unfold Bound. intros. unfold Bound in HbAbound.
               destruct (HbAbound C0 H4) as [B' [hBIn Hdedeq]].
               clear IHn.
@@ -547,7 +547,7 @@ Proof.
               remember ((sub (s_p tt) B1) ->> (sub (s_p tt) B2)) as B.
               unfold Bound in HbAbound. pose proof (HbAbound _ Hinc1to2) as HbB.
               inversion HbB as [C [inbC' eqBC]].              
-              assert (inBC: In form b C). 
+              assert (inBC: In b C). 
               {
                 apply Union_inv in inbC'. simpl in eqBC.
                 destruct inbC' as [trueC | falseC]; subst B.
@@ -558,9 +558,9 @@ Proof.
               clear inbC'. clear HbB.
               remember (f_p A i :: sub (s_p tt) A :: B :: G) as Gs'.
               assert (IHnInstance : exists b0 : Ensemble form,
-                              let b' := App tt b0 in Bound Gs' A b' /\ cardinal form b0 n).
+                              let b' := App tt b0 in Bound Gs' A b' /\ cardinal b0 n).
               {
-                exists (Subtract form b C). split.
+                exists (Subtract b C). split.
                 - unfold Bound. intros C' HC'. apply HbAbound in HC'.
                   inversion HC' as [B0 [inB0 eqB0]].
                   destruct (dceq_f B0 C).
@@ -678,7 +678,7 @@ Proof.
                         follow the same sequence of steps as the last time we used IH. *)
                     unfold Bound in HbAbound. pose proof (HbAbound _ Hinc1to2) as HbB.
                     inversion_clear HbB as [C [inbC' eqBC]].              
-                    assert (inBC: In form b C). (*/\ f_p A i :: sub (s_p tt) A  :: G |-- B <<->> C).*)
+                    assert (inBC: In b C). (*/\ f_p A i :: sub (s_p tt) A  :: G |-- B <<->> C).*)
                     {
                       apply Union_inv in inbC'. simpl in eqBC.
                       destruct inbC' as [trueC | falseC].
@@ -690,9 +690,9 @@ Proof.
                     remember ((sub (s_p tt) B1) ->> (sub (s_p tt) B2)) as B.
                     remember (f_p A i :: sub (s_p tt) A :: B :: G) as Gs'.
                     assert (IHnInstance : exists b0 : Ensemble form,
-                              let b' := App tt b0 in Bound Gs' A b' /\ cardinal form b0 n).
+                              let b' := App tt b0 in Bound Gs' A b' /\ cardinal b0 n).
                     {
-                      exists (Subtract form b C). split.
+                      exists (Subtract b C). split.
                       - unfold Bound. intros C' HC'. apply HbAbound in HC'.
                         inversion HC' as [B0 [inB0 eqB0]].
                         destruct (dceq_f B0 C).
@@ -1023,7 +1023,7 @@ Qed.
 
 (*
 Lemma bound_Bound : forall b A G n, bound b A G -> n = length b ->
-                                    exists B, Included (context_to_set b) B /\ Bound G A B /\ cardinal form B n.
+                                    exists B, Included (context_to_set b) B /\ Bound G A B /\ cardinal B n.
 Admitted.
 *)
 

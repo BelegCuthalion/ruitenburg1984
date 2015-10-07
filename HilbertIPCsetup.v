@@ -433,12 +433,12 @@ Qed.
 
 
 Lemma hil_weaken_incl : forall G G' A, G |-- A -> incl G G' -> G' |-- A.
-  intros. apply hil_permute with (G := G' ++ G).
-  apply hil_weaken_gen. trivial.
-  unfold incl in H0. split; rewrite in_app_iff; intro; auto.
-  inversion H1; auto.
-Defined.
-  
+  unfold incl.
+  intros. eapply hil_permute. eapply hil_weaken_gen.
+  apply H. instantiate (1 := G'). intros.
+  rewrite in_app_iff. intuition.
+Qed.
+
 
 (** ** Using omega *)
 
