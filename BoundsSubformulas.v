@@ -814,10 +814,12 @@ Lemma basic_bound_is_bound : forall G A, bound (basic_bound A) A G.
 Defined.
 
 
+
+
 (*
-(*Compute basic_bound exform1.*)
+Compute basic_bound exform1.
 (* => [var 1 ->> var 2; var 1; var 2 ->> tt; var 2; tt] *)
-(* whoa, this is funny... what [var 2 ->> tt] is doing here?? Compare with *)
+(* You may ask what [var 2 ->> tt] is doing here? Compare with *)
 
 (*Compute map t_optimize [var 1 ->> var 2; var 1; var 2 ->> tt; tt; var 2].*)
 (* => [var 1 ->> var 2; var 1; tt; tt; var 2] *)
@@ -832,34 +834,83 @@ Defined.
        var 2; tt; var 2 ->> tt; var 2; tt; tt; var 2; tt; tt; tt; 
        var 2; tt] *)
 
-(* ah, got that! the disputable formula arose from  (tt ->> var 2) ->> tt \v/ var 2 *)
+(* As one can guess, the disputable formula arose from  (tt ->> var 2) ->> tt \v/ var 2 *)
 (* one pass of [t_optimize] does not suffice to get optimal form *)
+*)
+
+
+(** Let us improve on this then ... *)
+
+
+Fixpoint frm_len (A : form) : nat :=
+  match A with
+    | var n => 0
+    | B ->> C => (max (frm_len B) (frm_len C)) + 1
+    | B & C => (max (frm_len B) (frm_len C)) + 1
+    | B \v/ C => (max (frm_len B) (frm_len C)) + 1
+    | tt => 0
+    | ff => 0
+  end.
+
+(*
+Compute frm_len exform1.
+*)
+
+
+Fixpoint iterator (n : nat) : forall X : Type, (X -> X) -> X -> X :=
+  match n with
+    | 0 => fun (X : Type) (f : X -> X) => f 
+    | S n' => fun X f x => f ((iterator n') X f x)                                         
+  end.     
+
+
+(*
+Fixpoint iterator_form (n : nat) : (form -> context) -> form -> context :=
+  match n with
+    | 0 => fun f A => f A
+    | S n' => fun f A => map f ((iterator_form n') f A)                                         
+  end. 
+*)
+
+
+Definition optimized_bound_param (A : form) (n : nat) :=  dup_rem (map (iterator n _ t_optimize) (mb_red A)).
+
+Definition optimized_bound (A : form) :=  optimized_bound_param A (frm_len A).
+                                            
+(*
+Compute optimized_bound exform1.
+(* => [var 1 ->> var 2; var 1; var 2; tt] *)
+*)
+
+
+Lemma optimized_bound_param_is_bound : forall G A n,  bound (optimized_bound_param A n) A G.
+  unfold optimized_bound_param.
+  induction n; intros ; simpl. 
+  - apply basic_bound_is_bound.
+  - unfold bound in *. rewrite Forall_forall in *.
+    intros C H. apply IHn in H. clear IHn. rewrite Exists_exists in *.
+    destruct H as [B [inB eqB]].
+    exists (t_optimize B).
+    destruct eqB as [BC Btt].
+    split; try split.
+    + apply dup_rem_incl.  apply incl_dup_rem in inB. rewrite in_map_iff in *.
+      destruct inB as [B' [itB' inB']]. exists B'. split; trivial.
+      rewrite itB'. reflexivity.
+    + eapply eq_trans. apply eq_sym. apply t_optimize_correct_1. assumption.
+    + apply t_optimize_correct_2. assumption.
+Defined.
+
+
+Lemma optimized_bound_is_bound : forall G A,  bound (optimized_bound A) A G.
+  intros. apply optimized_bound_param_is_bound.
+Defined.
 
 (* ############################################################# *)
 
 (* ... and of course other simplifications are possible relative to a chosen G:
   for example, replacing occurrences of formulas from the context with top ... *)
 
-(* One more property that could prove useful in what follows... *)
-
-Lemma mb_red_nonempty : forall A, exists B, List.In B (mb_red A).
-Proof.
-  induction A; simpl; 
-  try (eexists; tauto);
-  try inversion IHA1;
-  try inversion IHA2;
-  eexists;
-  try rewrite in_app_iff;
-  eauto.
-Defined.
-  
-Lemma bound_nonempty : forall b A G, bound b A G -> b <> [].
-  unfold bound. unfold not. intros. subst. rewrite Forall_forall in H.
-  destruct (mb_red_nonempty A).
-  apply H in H0.
-  eapply Exists_nil. eassumption.
-Defined.
 
 
 
-*)
+

@@ -176,12 +176,44 @@ Proof.
 Defined.
 
 
-(*
+Lemma cycle_upwards : forall n A m k, [] |-- f_p A m <<->> f_p A (m + k) -> [] |-- f_p A (m + n) <<->> f_p A (m + n + k).
+  intros.  induction n.
+  - om (m + 0) m. assumption.
+  - om (m + S n + k) (S (m + n + k)).
+    om (m + S n) (S (m + n)).
+    do 2 (rewrite <- f_p_unfold).
+    apply ded_subst. assumption.
+Qed.
+
+
+
 Corollary rui_1_9_basic_bound : forall A,  let m:= length (basic_bound A) in
                                      [] |-- f_p A (2 * m + 2) <<->>  f_p A (2 * m + 4).
 Proof.
-  intros. apply rui_1_9_list. apply basic_bound_is_bound.
+  intros.
+  destruct (rui_1_9_list _ _ (basic_bound_is_bound [] A)) as [m' [lm' eqv]].
+  destruct (NPeano.Nat.le_exists_sub _ _ lm') as [p [addp ineqp]].
+  subst m.
+  rewrite addp.
+  om (2 * (p + m') + 2) (2 * m' + 2 + 2 * p).
+  om (2 * (p + m') + 4) (2 * m' + 2 + 2 * p + 2).
+  apply cycle_upwards. om  (2 * m' + 2 + 2)  (2 * m' + 4).
+  assumption.
 Defined.  
-*)
+
+
+Corollary rui_1_9_optimized_bound : forall A,  let m:= length (optimized_bound A) in
+                                     [] |-- f_p A (2 * m + 2) <<->>  f_p A (2 * m + 4).
+Proof.
+  intros.
+  destruct (rui_1_9_list _ _ (optimized_bound_is_bound [] A)) as [m' [lm' eqv]].
+  destruct (NPeano.Nat.le_exists_sub _ _ lm') as [p [addp ineqp]].
+  subst m.
+  rewrite addp.
+  om (2 * (p + m') + 2) (2 * m' + 2 + 2 * p).
+  om (2 * (p + m') + 4) (2 * m' + 2 + 2 * p + 2).
+  apply cycle_upwards. om  (2 * m' + 2 + 2)  (2 * m' + 4).
+  assumption.
+Defined.  
 
 
