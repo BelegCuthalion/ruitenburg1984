@@ -842,18 +842,18 @@ Compute basic_bound exform1.
 (** Let us improve on this then ... *)
 
 
-Fixpoint frm_len (A : form) : nat :=
+Fixpoint frm_dep (A : form) : nat :=
   match A with
     | var n => 0
-    | B ->> C => (max (frm_len B) (frm_len C)) + 1
-    | B & C => (max (frm_len B) (frm_len C)) + 1
-    | B \v/ C => (max (frm_len B) (frm_len C)) + 1
+    | B ->> C => (max (frm_dep B) (frm_dep C)) + 1
+    | B & C => (max (frm_dep B) (frm_dep C)) + 1
+    | B \v/ C => (max (frm_dep B) (frm_dep C)) + 1
     | tt => 0
     | ff => 0
   end.
 
 (*
-Compute frm_len exform1.
+Compute frm_dep exform1.
 *)
 
 
@@ -875,7 +875,7 @@ Fixpoint iterator_form (n : nat) : (form -> context) -> form -> context :=
 
 Definition optimized_bound_param (A : form) (n : nat) :=  dup_rem (map (iterator n _ t_optimize) (mb_red A)).
 
-Definition optimized_bound (A : form) :=  optimized_bound_param A (frm_len A).
+Definition optimized_bound (A : form) :=  optimized_bound_param A (frm_dep A).
                                             
 (*
 Compute optimized_bound exform1.
@@ -913,4 +913,49 @@ Defined.
 
 
 
+Fixpoint frm_len (A : form) : nat :=
+  match A with
+    | var n => 1
+    | B ->> C => (frm_len B) + (frm_len C) + 1
+    | B & C => (frm_len B) + (frm_len C) + 1
+    | B \v/ C => (frm_len B) + (frm_len C) + 1
+    | tt => 1
+    | ff => 1
+  end.
 
+
+Fixpoint p_occ (A : form) : nat :=
+  match A with
+    | var n => match n with
+                 | 0 => 1
+                 | S n' => 0
+                end
+    | B ->> C => (p_occ B) + (p_occ C) 
+    | B & C => (p_occ B) + (p_occ C) 
+    | B \v/ C => (p_occ B) + (p_occ C)
+    | tt => 0
+    | ff => 0
+  end.
+
+
+
+Definition one_step_subst_length : nat * nat -> nat * nat :=
+  fun (m : nat * nat) => let (len, occ) := m in ((S occ) * len - occ, occ * occ).
+
+Lemma length_subst : forall A B, 
+                       frm_len (sub (s_p B) A) = p_occ A * (frm_len B) + frm_len A - p_occ A.
+  induction A; simpl.
+  - unfold s_p. unfold s_n. destruct n; simpl; intros; omega.
+  - intros. rewrite IHA1. rewrite IHA2. rewrite mult_plus_distr_r. 
+
+Definition length_of_f_p (A : form) (n : nat) :=
+  match n with
+    | 0 => (1,1)
+    | S n' => (iterator n' _ one_step_subst_length) (frm_len A, p_occ A)
+  end.
+
+Lemma length_of_f_p_correct : forall n A, let (len,occ) := (length_of_f_p A n) in frm_len (f_p A n) = len /\  p_occ (f_p A n) = occ.
+Proof.
+  induction n; simpl; intros.
+  - tauto.
+  - 
