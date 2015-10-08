@@ -937,25 +937,78 @@ Fixpoint p_occ (A : form) : nat :=
     | ff => 0
   end.
 
+Lemma pocc_shorter_length : forall A, p_occ A <= frm_len A.
+  induction A; try (simpl; omega).
+  destruct n; simpl; omega.
+Qed.
 
-
-Definition one_step_subst_length : nat * nat -> nat * nat :=
-  fun (m : nat * nat) => let (len, occ) := m in ((S occ) * len - occ, occ * occ).
+  
 
 Lemma length_subst : forall A B, 
                        frm_len (sub (s_p B) A) = p_occ A * (frm_len B) + frm_len A - p_occ A.
-  induction A; simpl.
+  induction A; simpl;
+  try
+    ( intros; rewrite IHA1, IHA2; rewrite mult_plus_distr_r;
+    pose proof (pocc_shorter_length A1); pose proof (pocc_shorter_length A2);
+    remember (p_occ A1 * frm_len B) as A1B;
+    remember ( p_occ A2 * frm_len B) as A2B; 
+    do 2 (rewrite NPeano.Nat.add_assoc; omega));
+    try (intros; reflexivity). 
   - unfold s_p. unfold s_n. destruct n; simpl; intros; omega.
-  - intros. rewrite IHA1. rewrite IHA2. rewrite mult_plus_distr_r. 
+Qed.    
+
+Lemma p_occ_subst : forall A B, 
+                      p_occ (sub (s_p B) A) = p_occ A * p_occ B.
+  induction A; intros;
+  try (simpl; rewrite IHA1, IHA2;  rewrite mult_plus_distr_r; omega);
+  try reflexivity.  
+  - unfold s_p. unfold s_n. destruct n; simpl; intros; omega.
+Qed.
+   
+frm_len (sub (s_p B) A) = p_occ A * (frm_len B) + frm_len A - p_occ A.
+(*
+Definition one_step_subst_length : nat * nat * nat * nat -> nat * nat :=
+  fun (m : nat * nat * nat * nat) => let (len, occ) := m in ((S occ) * len - occ, occ * occ).*)
 
 Definition length_of_f_p (A : form) (n : nat) :=
   match n with
     | 0 => (1,1)
-    | S n' => (iterator n' _ one_step_subst_length) (frm_len A, p_occ A)
+    | S n' => let m = length_of_f
   end.
 
-Lemma length_of_f_p_correct : forall n A, let (len,occ) := (length_of_f_p A n) in frm_len (f_p A n) = len /\  p_occ (f_p A n) = occ.
+
+(*
+Definition length_of_f_p (A : form) (n : nat) :=
+  match n with
+    | 0 => (1,1)
+    | 1 => (frm_len A, p_occ A)
+    | S (S n') => (iterator (S n') _ one_step_subst_length) (frm_len A, p_occ A)
+  end.
+ *)
+(*
+Definition one_step_subst_length : nat * nat -> nat * nat :=
+  fun (m : nat * nat) => let (len, occ) := m in ((S occ) * len - occ, occ * occ).
+*)
+
+
+Lemma length_of_f_p_correct : forall A n, let (len,occ) := (length_of_f_p A n) in frm_len (f_p A n) = len /\  p_occ (f_p A n) = occ.
 Proof.
-  induction n; simpl; intros.
+  induction n; simpl.
   - tauto.
   - 
+    (*remember (frm_len A) as flA.
+    remember (p_occ A) as pA.
+    remember (frm_len (f_p A n)) as fl_fpnA.
+    remember (p_occ (f_p A n)) as p_fpnA.*)
+    destruct n; simpl;  rewrite length_subst, p_occ_subst; simpl.
+    + omega.
+    + rewrite length_subst, p_occ_subst.
+      simpl in IHn. 
+      destruct n; simpl; rewrite length_subst, p_occ_subst in *.
+      * admit.
+      * destruct 
+              (iterator n (nat * nat) one_step_subst_length
+                        (frm_len A, p_occ A)) as (len', occ'). simpl in *.
+        rewrite length_subst, p_occ_subst in IHn. 
+        destruct IHn as [eql eqr].
+        rewrite eql, eqr. 
