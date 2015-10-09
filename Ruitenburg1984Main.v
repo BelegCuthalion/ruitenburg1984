@@ -222,11 +222,12 @@ Definition basic_cycle' (A: form) (* :String * nat * String * context * String *
   let b := (basic_bound A) in let m := (length b) in
                                   ( m, b, (2 * m) + 2, f_p A (2 * m + 2), f_p A (2 * m + 4)). *)
 
+(*
 Compute (basic_bound exform1).
 Compute (length (basic_bound exform1)). (* 5 *)
 Compute (optimized_bound exform1).
 Compute (length (optimized_bound exform1)). (* 4 *)
-Compute (f_p exform1 10).
+Compute (f_p exform1 10).*)
 (*Print exform1.
 
 
@@ -252,21 +253,29 @@ Compute (f_p (p->>q) 6). *)
 Compute (optimized_cycle exform1).
 ... stack overflow ..?" *)
 
-Compute length_of_f_p exform1 10.
+(*Compute length_of_f_p exform1 10.*)
 (* ... stack overflow ... again ? *)
 
 Definition optimized_cycle (A: form) :=
   let b := (optimized_bound A) in let m := (length b) in let (len, occ) := (length_of_f_p A  ((2 * m) + 2)) in (m, b, (2 * m) + 2, len).
-Compute (optimized_cycle (p ->> q)).
-Compute (f_p (p->>q) 6). 
 
+
+(* Compute (optimized_cycle (p ->> q)).
+ (2, [var 1; tt], 6, 13) *)
+
+(* Compute (f_p (p->>q) 6). 
+  (((((var 0 ->> var 1) ->> var 1) ->> var 1) ->> var 1) ->> var 1) ->>
+       var 1 *)
+
+Definition cycle_formula_length (A : form) := let b := (optimized_bound A) in let m := (length b) in let (len, _ ) := (length_of_f_p A  ((2 * m) + 2)) in len.
+  
 
 Extraction Language Haskell.
 
-Recursive Extraction optimized_cycle.
+Extraction "ruitenburg.hs" optimized_cycle exform1 cycle_formula_length.
 
 Extraction Language Ocaml.
-Recursive Extraction optimized_cycle.
+Extraction "ruitenburg.ml" optimized_cycle.
 
 
 
