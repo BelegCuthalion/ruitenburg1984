@@ -4,3 +4,11 @@
 # ignore HTML files
 *.glob
 *.html
+
+# ignore all generated LaTeX stuff
+*.tex
+*.out
+*.pdf
+*.synctex.gz
+*.log
+*.aux

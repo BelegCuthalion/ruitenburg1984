@@ -8,7 +8,7 @@ __ = Prelude.error "Logical or arity value used"
 
 data Nat =
    O
- | S Nat deriving Prelude.Show
+ | S Nat deriving Prelude.Eq -- the last part added
 
 nat_rect :: a1 -> (Nat -> a1 -> a1) -> Nat -> a1
 nat_rect f f0 n =
@@ -19,6 +19,74 @@ nat_rect f f0 n =
 nat_rec :: a1 -> (Nat -> a1 -> a1) -> Nat -> a1
 nat_rec =
   nat_rect
+
+
+-- added pretty printer using a blog entry https://medium.com/@7er/implementing-natural-numbers-in-haskell-7421f7b9468a
+
+
+instance Prelude.ShowS Nat where
+  shows = decimalString
+  -- show O = ""
+  -- show (S (S (S (S (S n))))) = (show four) ++ "$" ++ (show n)
+  -- show (S n) = "|" ++ show n
+  
+instance Prelude.Ord Nat where
+  O Prelude.<= _ = Prelude.True
+  _ Prelude.<= O = Prelude.False
+  (S x) Prelude.<= (S y) = x Prelude.<= y
+
+one = S O
+two = S O
+three = S O
+four = plus two two
+ten = mult two $ plus three two
+
+decimalString :: Nat-> String
+decimalString O = "0"
+decimalString x = decimal' x
+  where decimal' O = []
+        decimal' x = 
+          let (newNumber, lastDecimalDigit) = divmod x Prelude.$ ten
+          in (decimal' newNumber) Prelude.++ succLowerThanTenToString lastDecimalDigit
+                                  
+succLowerThanTenToString x =
+  case x of
+    O -> "0"
+    (S O) -> "1"
+    (S (S O)) -> "2"
+    (S (S (S O))) -> "3"
+    (S (S (S (S O)))) -> "4"
+    (S (S (S (S (S O))))) -> "5"
+    (S (S (S (S (S (S O)))))) -> "6"
+    (S (S (S (S (S (S (S O))))))) -> "7"
+    (S (S (S (S (S (S (S (S O)))))))) -> "8"
+    (S (S (S (S (S (S (S (S (S O))))))))) -> "9"
+
+
+-- ...
+
+
+frac x@(S _) y@(S _) = case divmod x y of
+  (result, O) -> result
+  otherwise -> Prelude.error  Prelude.$ Prelude.shows x Prelude.++ " is not divisible by " Prelude.++ Prelude.shows y
+
+divmod :: Nat -> Nat -> (Nat, Nat)
+divmod O _ = (O, O)
+divmod x@(S _) y@(S _) = divmod' (S O) x y
+  where divmod' maybeZ@(S prev) x y =
+          let maybeX = mult maybeZ y
+          in
+           if maybeX Prelude.> x
+           then let result = mult prev y
+                    rest = minus x result
+                in (prev, rest)                   
+           else
+             if maybeX Prelude.== x
+             then (maybeZ, O)
+             else divmod' (S maybeZ) x y
+
+
+--- end of addition
 
 data Prod a b =
    Pair a b
