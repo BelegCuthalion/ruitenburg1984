@@ -11,7 +11,7 @@ The Coq Proof Assistant, version 8.4pl6 (September 2015)
 
 (** ** Contents *)
 
-(** This file  contains underlying definitions and the theory of a (somewhat sequent-style) presentation of IPC 
+(** This file  contains underlying definitions and the theory of a (turnstile-Hilbert-style) presentation of IPC 
   used in Ruitenburg's paper. *)
 
 (** ** The notion of a formula *)
@@ -32,8 +32,13 @@ Hint Constructors form.
 Notation "A '&' B " := (and A B) (at level 40, left associativity).
 Notation "A '\v/' B " := (or A B) (at level 45, left associativity).
 Notation "A '->>' B" := (imp A B) (at level 49, right associativity).
-(*Notation "'TT'" := top.
-Notation "_||_" := bot.*)
+
+
+
+Definition p := var 0. (** The distinguished variable in polynomials. *)
+Definition q := var 1.
+Definition r := var 2.
+
 
 (** *** Decidable equality for variables and fomulas *)
 
@@ -57,13 +62,11 @@ Defined.
 
 
 
-(** ** Hilbert-style system for IPC, sequent calculus notation *)
+(** ** Hilbert-style system for IPC  *)
 
 Reserved Notation "G '|--' A" (at level 63).
 
-(*Require Export Coq.Lists.ListSet.
-Coq.MSets.MSetInterface.
-Require Export MSetList.*)
+
 
 
 Require Export Coq.Lists.List.
@@ -101,7 +104,7 @@ Proof.
 eauto.
 Defined.
 
-(*Print deriv_id.*)
+
 
 Hint Resolve deriv_id.
 
@@ -130,7 +133,7 @@ Defined.
                    
 
 Lemma hil_ded_conv: forall G (A B : form),  G |-- A ->> B -> A :: G |-- B.
-Proof. (* with hil_weaken. *) 
+Proof. 
   intros. apply (hilMP _ A).
   - apply hil_weaken.  trivial.
   - hilst_auto.
@@ -139,37 +142,10 @@ Defined.
 
 Definition fold_imp (G:context) (A:form) := fold_left (fun A B => B ->> A)  G A.
 
-Definition p := var 0.
-Definition q := var 1.
-Definition r := var 2.
 
 
-(*Check fold_left.
 
-(* ==> fold_left
-     : forall A B : Type, (A -> B -> A) -> list B -> A -> A *)
-
-Definition lst_to_cxt (G : list form) := fold_left  (fun  G' A => set_add dceq_f A G') G nil.*)
-  
-
-(*Check fold_right.
-
-(* ==> fold_right
-     : forall A B : Type, (B -> A -> A) -> A -> list B -> A *)
-
-Definition lst_to_cxt (G : list form) := fold_right   (fun  A  G' => set_add dceq_f A G') nil G.*)
-  
-(*
-Fixpoint lst_to_cxt (G : list form) : context :=
-  match G with
-    | nil => nil
-    | cons A G' => set_add dceq_f A (lst_to_cxt G')
-  end.*)
-
-(*Notation "'[['  A ; .. ; B ']]'"  := (lst_to_cxt (cons A .. (cons B nil) ..)).*)
-
-
-Definition G0 := [ p ; q ->> (p ->>r) ].
+(* Definition G0 := [ p ; q ->> (p ->>r) ].*)
 
 (*Compute  G0.*)
 
@@ -223,6 +199,8 @@ Defined.
 Hint Resolve hil_ded_ext.
 *)
 
+
+(** *** Equivalence *)
 
 Notation "A '<<->>' B" := ((A ->> B) & (B ->> A)) (at level 58).
 
