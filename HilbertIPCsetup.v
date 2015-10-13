@@ -432,37 +432,6 @@ Ltac om n1 n2 :=
   replace n1 with n2; try omega.
 
 
-(** ** Decidability of deducibility *)
-
-
-(** This is needed in two crucial places in the proof of the main Theorem 1.4. *)
-(** This is also the only place where we need classical logic. *)
-(** One could rid of this and turn the proof into a wholly constructive one
- by,e g., moving from Hilbert-style to sequent-calculus presentation and 
- incorporating a syntactic proof of cut-elimination for a variant LJ, some of which are available in Coq.
- This would yield decidability of turnstile via the subformula property. *)
-
-(** We are not taking this ambitious option here. *)
-
-(** But in order not to contaminate the whole development with classical metatheory, 
-    we enclose it in a module, so that user can easily verify that the excluded middle for deducibility
-    (and axioms of classical logic in general) are only use in those two specific places in
-    Ruitenburg's proof of Theorem 1.4. *)
-
-Module DecidEquiv.
-
-Require Import Coq.Logic.Classical_Prop.
-
-
-Lemma decid_equiv : forall G A, (G |-- A) \/ ~(G |-- A).
-  intros. apply classic.
-Qed.
-
-End DecidEquiv.
-
-
-      
-
 
 (* ############################################################## *)
 
@@ -625,51 +594,6 @@ Lemma sub_assoc : forall A B C,
   - destruct n; simpl; auto.
 Qed.
 
-
-
-(** ** Duplicate removal *)
-
-
-
-
-(** An important function on lists: duplicate removal *)
-
-
-
-
-
-Fixpoint dup_rem (G : list form) : list form :=
-  match G with
-    | nil => nil
-    | A :: G' =>  if (in_dec dceq_f A G') then dup_rem G' else A :: dup_rem G'
-  end.
-
-
-(** Basic facts about duplicate removals *)
-
-Lemma dup_rem_incl : forall G, incl G (dup_rem G).
-  unfold incl. induction G; simpl; intros; inversion H; subst;
-    try (rename a0 into a);  destruct (in_dec dceq_f a); auto; simpl.
-  - tauto.
-  - auto.
-Defined.
-
-Lemma incl_dup_rem : forall G, incl (dup_rem G) G.
-  unfold incl. induction G; simpl; intros.
-  - apply H.
-  - destruct (in_dec dceq_f a G); auto.
-    inversion H; subst; auto.
-Defined.
-
-
-Lemma no_dup_rem : forall G, NoDup (dup_rem G).
-  induction G; simpl; try constructor.
-  destruct ( in_dec dceq_f a G); trivial.
-  constructor; trivial.
-  pose proof (incl_dup_rem G).
-  intro. unfold incl in H.
-  apply H in H0. contradiction.
-Defined.
 
 
 
@@ -1033,6 +957,49 @@ Lemma fresh_for_f_p_gen :
   destruct i; simpl. assumption.
   rewrite f_p_unfold. apply fresh_for_f_p. trivial.
   Qed.
+
+
+
+
+(* ##################################################### *)
+(* ##################################################### *)
+
+
+
+
+(** ** Decidability of deducibility *)
+
+
+(** This is needed in two crucial places in the proof of the main Theorem 1.4. *)
+(** This is also the only place where we need classical logic. *)
+(** One could rid of this and turn the proof into a wholly constructive one
+ by,e g., moving from Hilbert-style to sequent-calculus presentation and 
+ incorporating a syntactic proof of cut-elimination for a variant LJ, some of which are available in Coq.
+ This would yield decidability of turnstile via the subformula property. *)
+
+(** We are not taking this ambitious option here. *)
+
+(** But in order not to contaminate the whole development with classical metatheory, 
+    we enclose it in a module, so that user can easily verify that the excluded middle for deducibility
+    (and axioms of classical logic in general) are only use in those two specific places in
+    Ruitenburg's proof of Theorem 1.4. *)
+
+Module DecidEquiv.
+
+Require Import Coq.Logic.Classical_Prop.
+
+
+Lemma decid_equiv : forall G A, (G |-- A) \/ ~(G |-- A).
+  intros. apply classic.
+Qed.
+
+End DecidEquiv.
+
+
+
+
+      
+
 
 
 (* ################################################################ *)

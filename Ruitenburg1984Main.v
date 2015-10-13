@@ -19,6 +19,7 @@ The Coq Proof Assistant, version 8.4pl6 (September 2015)
 
 Require Export Ruitenburg1984KeyTheorem.
 Require Export Ruitenburg1984Aux.
+Require Export BoundsLists.
 
 (** The latter file is not used in Corollary 1.5, only in Corollary 1.9 *)
 
