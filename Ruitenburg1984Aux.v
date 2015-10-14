@@ -73,16 +73,6 @@ Defined.
 (** The lemma below is a generalization of a step marked  * in the proof of Lemma 1.7 (i) *)
 
 Lemma star_step_rui_1_7 : forall A m, [ sub (s_p tt) (f_p A m) ; sub (s_p tt) (f_p A (m + 1))] |--  sub (s_p tt) A.
-  (* intros. rev_goal.
-  assert ( sub (s_p (sub (s_p tt) A)) A = sub (s_p tt) A).
-  {
-    apply subs_fresh_form with (A := .
-  apply hil_ded_conv. apply equiv_to_impl.
-  replace ( sub (s_p tt) A) with (sub (s_p tt)  (sub (s_p (sub (s_p tt) A)) A)).
-  replace ([sub (s_p tt) (f_p A m)]) with (ssub (s_p tt) [f_p A m]).
-  apply hil_sub_equiv. apply generalizing_some_hash_steps.
-  
-(* the old alternative proof, before I provided the "generalized hash step" above *)*)
   intros. eapply ded_equiv.
   - apply (ded_subst _ _ (sub (s_p tt) (f_p A m))). apply ded_tt1; simpl; tauto.
   - replace (sub (s_p (sub (s_p tt) (f_p A m))) A) with (sub (s_p tt) (f_p A (m + 1))). hilst_auto.
@@ -123,12 +113,6 @@ Proof.
 Defined.
 
 
-(* I am not even sure if what I tried to show below holds... 
-Lemma hash_substep_rui_1_7_subst : forall m A k, [sub (s_p tt) (f_p A (S k))] |-- sub (s_p tt) (f_p A (S(m+k))).
-Proof.
-  intros. eapply hilMP. apply hil_ded. Check rui_1_2_i.
-  replace ([sub (s_p tt) (f_p A S k)]) with (ssub (s_p (sub s_p tt (f_p A k)) [sub (s_p tt) (f_p A S k)]) 
-*)
 
 (** The lemma below is a generalization of a step marked  with hash in the proof of Lemma 1.7 (i) *)
 
@@ -153,18 +137,6 @@ Lemma hash_step_rui_1_7_subst : forall A m, [ sub (s_p tt) (f_p A (m + 1))] |-- 
 Defined.
 
 
-(*
-(** The other variant is used in the proof of the clause (ii) of Lemma 1.7 *)
-... ah... I was repeating myself here.
-
-Lemma hash_step_rui_1_7_subst2 : forall A m, [sub (s_p tt) (f_p A (m + 1))]
-                                               |-- sub (s_p tt) (f_p A m) <<->> sub (s_p tt) A.
-Proof.
-  intros.
-  apply split_equiv; split.
-  - apply hil_ded. apply star_step_rui_1_7.
-  - apply hil_ded. rev_goal. apply hil_weaken. apply hash_substep_rui_1_7.
-Defined.*)
     
 (** So far, so good. But now we are reaching rather strange place in proof of Lemma 1.7 (i), that 
  is not sufficiently explained in the paper. Its counterpart in (ii) is marked with dollar sign, but no such explanation
@@ -221,36 +193,8 @@ Proof.
 Defined.
 
 
-(*Lemma hash_step_rui_1_7variant2 : forall A m, [ sub (s_p tt) (f_p A (2 * m))] |-- sub (s_p tt) (f_p A m) ->> sub (s_p tt) (f_p A 2).
-  intros. apply split_equiv.  Admitted.*)
-(*
-  - apply hil_ded. Check star_s.
-  - apply hil_ded. replace ([sub (s_p tt) A; sub (s_p tt) (f_p A (m + 1))]) with
-                   (rev [sub (s_p tt) (f_p A (m + 1)); sub (s_p tt) A]); auto.
-    eapply hil_permute; [apply hil_weaken | apply in_rev].
-    apply hash_substep_rui_1_7.
-Defined.
-*)
 
 
-
-(*
- rui_1_2_i_variant2 : forall A i k, [f_p A  i ; sub (s_p tt) (f_p A 2)] |-- f_p A (i +  2 * k).
-Lemma hash_substep_rui_1_7 : forall m A, [sub (s_p tt) A] |-- sub (s_p tt) (f_p A m).
-Proof.
-  intros.
-  eapply hil_permute.
-    - instantiate (1:= ssub (s_p tt) [f_p A 1; sub (s_p tt) A]).
-      destruct m.
-      + simpl. auto.
-      + apply hil_sub.  apply rui_1_2_i.
-    - simpl. rewrite sub_s_p_trivial0.  rewrite subs_fresh_form with (A:=(sub (s_p tt) A)).
-      tauto. intros.
-      destruct (eq_nat_dec 0 n); subst; auto.
-      intros. contradict H. 
-      apply freshness_s_p; auto.
-Defined.
-*)
 
 
 
@@ -297,17 +241,16 @@ Proof.
   - intros. simpl. om (n+0) n. eauto.
   - induction n.
     + apply eq_trans with (B :=  sub (s_p tt) (f_p A (1 + 2 * k))).
-    * apply IHk.
-    * replace (sub (s_p tt) (f_p A (1 + 2 * k))) with (sub (s_p (sub (s_p tt) A)) (f_p A (2 * k))).
-      replace (sub (s_p tt) (f_p A (1 + 2 * S k))) with (sub (s_p (sub (s_p tt) (f_p A 3))) (f_p A (2 * k))).
-      apply ded_subst.
-      apply cycle_variable_free.
-      (*simpl. rewrite sub_s_p_trivial0.*)
-      om (1 + 2 * S k) (2 *  k + 3).
-      apply f_p_unfold_subst.
-      om (1 + 2 * k) (2 * k + 1).
-      rewrite (f_p_1 A) at 1.
-      apply f_p_unfold_subst.
+      * apply IHk.
+      * replace (sub (s_p tt) (f_p A (1 + 2 * k))) with (sub (s_p (sub (s_p tt) A)) (f_p A (2 * k))).
+        replace (sub (s_p tt) (f_p A (1 + 2 * S k))) with (sub (s_p (sub (s_p tt) (f_p A 3))) (f_p A (2 * k))).
+        apply ded_subst.
+        apply cycle_variable_free.
+        om (1 + 2 * S k) (2 *  k + 3).
+        apply f_p_unfold_subst.
+        om (1 + 2 * k) (2 * k + 1).
+        rewrite (f_p_1 A) at 1.
+        apply f_p_unfold_subst.
     + replace (sub (s_p tt) (f_p A (S (S n)))) with (sub (s_p (sub (s_p tt) (f_p A (S n)))) A).
       replace (sub (s_p tt) (f_p A  (S (S n) + 2 * S k))) with (sub (s_p (sub (s_p tt) (f_p A (S n + 2 * S k)))) A).
       apply ded_subst. assumption.
@@ -336,19 +279,29 @@ Lemma rui_1_7_ii :  forall A m n, [ sub (s_p tt) (f_p A (2*m + 2))] |--  sub (s_
     hilst_auto.
 Defined.
 
-
 (* However, with our new powerful corollary of Lemma 1.7(i) we can actually derive 1.7(ii)! 
-or can we 
+or can we ... *)
 Lemma rui_1_7_ii' :  forall A m n, [ sub (s_p tt) (f_p A (2*m + 2))] |--  sub (s_p tt) (f_p A (2 *n)).
 Proof.
   intros.
-  destruct (le_le_S_dec (2 * m + 2) (2 * n));
-    destruct (NPeano.Nat.le_exists_sub _ _ l) as [k [Hk _]]; rewrite Hk.
-  -  destruct k. 
-     + om (0 + (2 * m + 2)) (2 * m + 2). hilst_auto.
-     + om (2 * m + 2) (S(2 * m + 1)).
-       om (S k + S (2 * m + 1)) (S (2 * m + 1) + 
-*)
+  destruct (le_le_S_dec (m + 1)  n);
+    destruct (NPeano.Nat.le_exists_sub _ _ l) as [k [Hk _]]. (* rewrite Hk. *)
+  - rewrite Hk.
+    om (2 * (k + (m + 1))) (2 * m + 2 + 2 * k).
+    destruct k.
+    + om (2 * m + 2 + 2 * 0) (2 * m + 2). hilst_auto.
+    + om (2 * m + 2) (S(2*m + 1)). apply hil_ded_conv. apply equiv_to_impl.
+      apply  cycle_variable_free_gen.
+  - om (2 * m + 2) (2 * (m + 1)). rewrite Hk.
+    om (2 * (k + S n)) (2 * n + 2 * k + 2).
+    destruct n.
+    + simpl. unfold s_p. simpl.
+      rewrite s_n_triv. auto.
+    + om  (2 * S n + 2 * k + 2)  (S (2 * n + 1) + 2 * (k + 1)).
+      apply hil_ded_conv. apply equiv_to_impl. apply eq_sym.
+      om (2 * S n) (S (2 * n + 1)).
+      apply  cycle_variable_free_gen.
+Qed.
 
 (* ############################################## *)
 
@@ -407,24 +360,6 @@ Defined.
 
 
 
-(*
-Lemma rui_1_8_first_half_3hash: forall A m,  [f_p A (m + 1); f_p A (m + 2)] |--  sub (s_p tt) A.
-Proof.
-  intros. rev_goal. simpl.
-  (*replace ([f_p A (m + 1); f_p A (m + 2)]) with (rev [f_p A (m + 2); f_p A (m + 1)]);
-        try reflexivity.
-  apply hil_rev.*) apply hil_ded_conv.
-  eapply hilMP. apply hilC2.
-  replace (f_p A (m + 2)) with (sub (s_p (f_p A (m + 1))) A).
-  apply ded_subst. apply ded_tt1. simpl. tauto.
-  rewrite  f_p_unfold. replace (S (m + 1)) with (m + 2); try omega. reflexivity.
-Defined.
- *)
-
-(*Lemma impl_weaken : forall G A B, G |-- A ->> B <-> G |-- A ->> (A ->> B).
-Proof.
-  intros; split; eauto.
-Defined.*)
                                                        
 (** Note Ruitenburg's use of "(2)"  in the proof below is rather confusing. *)
 
@@ -463,25 +398,6 @@ Proof.
   -  apply rui_1_8_first_half_3; assumption.
 Defined.
 
-(*
-Lemma rui_1_8_second_half_3hash : forall A m, [f_p A m; f_p A (m + 3)] |-- sub (s_p tt) (f_p A 3).
-Proof.
-*)
-
-
-
-(* this nonsense is what prompted me to generalize some has steps above ... 
-Lemma rui_1_8_first_half_3hash': forall A m,  [f_p A (m + 1); f_p A (m + 2)] |--  sub (s_p tt) A.
-Proof.
-  intros. rev_goal. 
-  (*replace ([f_p A (m + 1); f_p A (m + 2)]) with (rev [f_p A (m + 2); f_p A (m + 1)]);
-        try reflexivity.
-  apply hil_rev.*) apply hil_ded_conv.
-  eapply hilMP. apply hilC2.
-  replace (f_p A (m + 2)) with (sub (s_p (f_p A (m + 1))) A).
-  apply ded_subst. apply ded_tt1. simpl. tauto.
-  rewrite  f_p_unfold. replace (S (m + 1)) with (m + 2); try omega. reflexivity.
-Defined. *)
 
 
   
